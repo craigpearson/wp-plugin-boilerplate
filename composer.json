@@ -27,6 +27,11 @@
             "WpPluginMold\\": "src/"
         }
     },
+	"autoload-dev": {
+		"psr-4": {
+			"WpPluginMold\\Test\\": "tests/"
+		}
+	},
     "authors": [
         {
             "name": "Craig Pearson",

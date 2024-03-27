@@ -7,6 +7,9 @@
 
 namespace WpPluginMold\Example;
 
+use function add_action;
+use function remove_action;
+
 /**
  * Example class for the plugin
  *
@@ -20,6 +23,7 @@ class Example {
 	 */
 	public function boot(): void {
 		add_action( 'wp_head', [ $this, 'wp_head' ] );
+		remove_action( 'wp_head', [ $this, 'wp_head'] );
 	}
 
 	/**

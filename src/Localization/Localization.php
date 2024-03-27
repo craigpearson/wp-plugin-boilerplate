@@ -1,7 +1,7 @@
 <?php
 /**
  * Handles the localization functionality of the plugin.
- * 
+ *
  * @package WpPluginMold
  */
 
@@ -9,10 +9,10 @@ namespace WpPluginMold\Localization;
 
 /**
  * Handles the localization functionality of the plugin.
- * 
+ *
  * @package WpPluginMold
  */
-class LocalizationService {
+class Localization {
 	/**
 	 * Main method for the service, called by the container.
 	 */

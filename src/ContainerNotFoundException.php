@@ -15,4 +15,4 @@ use Psr\Container\NotFoundExceptionInterface;
  *
  * @package WpPluginMold
  */
-class ContainerNotFoundException extends Exception implements NotFoundExceptionInterface {}
+class ContainerNotFoundException extends \Exception implements NotFoundExceptionInterface {}

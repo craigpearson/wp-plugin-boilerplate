@@ -1,0 +1,30 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "mergeConfidence:all-badges",
+        "config:recommended"
+    ],
+    "packageRules": [
+        {
+            "matchManagers": [
+                "composer"
+            ],
+            "matchUpdateTypes": [
+                "minor",
+                "patch",
+                "pin",
+                "digest"
+            ],
+            "automerge": true
+        },
+        {
+            "matchManagers": [
+                "composer"
+            ],
+            "matchUpdateTypes": [
+                "major"
+            ],
+            "automerge": false
+        }
+    ]
+}
