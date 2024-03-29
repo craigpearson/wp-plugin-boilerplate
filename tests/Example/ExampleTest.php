@@ -3,64 +3,74 @@
 namespace WpPluginMold\Test\Example;
 
 use WpPluginMold\Example\Example;
+use WpPluginMold\Utils\Helpers;
 use WP_Mock\Tools\TestCase;
 use WP_Mock;
 
 /**
  * Class ExampleTest
  *
- * This class contains the unit tests for the Example class.
+ * Unit tests for the Example class.
  */
 class ExampleTest extends TestCase {
 
+    private $helpers;
+    private $example;
+
     /**
-     * Set up the test environment before each test.
-     *
-     * Configures WP_Mock and sets up mocked WordPress functions used in the tests.
+     * Set up the test environment.
      */
     public function setUp(): void {
         WP_Mock::setUp();
 
-        WP_Mock::userFunction('remove_action', [
-            'times' => '0+', // Indicates the function can be called zero or more times.
-            'args'  => [WP_Mock\Functions::type('string'), WP_Mock\Functions::type('callable')],
-            'return' => true, // Mock the function to return true.
-        ]);
+        $this->helpers = \Mockery::mock(Helpers::class);
+        $this->example = new Example($this->helpers);
     }
 
     /**
-     * Tear down the test environment after each test.
-     *
-     * Cleans up the WP_Mock environment to ensure isolation between tests.
+     * Tear down the test environment.
      */
     public function tearDown(): void {
         WP_Mock::tearDown();
     }
 
     /**
-     * Test the boot method of the Example class.
-     *
-     * Ensures that the wp_head action is correctly added by the boot method.
+     * Test that the boot method adds the expected action.
      */
-    public function test_boot(): void {
-        $example = new Example();
-        WP_Mock::expectActionAdded('wp_head', [$example, 'wp_head']);
-        $example->boot();
-
+    public function testBoot() {
+        WP_Mock::expectActionAdded('admin_menu', [$this->example, 'addSettingsSubmenu']);
+        $this->example->boot();
         $this->assertHooksAdded();
     }
 
     /**
-     * Test the wp_head method of the Example class.
-     *
-     * Ensures that the wp_head method outputs the correct string.
+     * Test that the addSettingsSubmenu method calls the expected function.
      */
-    public function test_wp_head(): void {
-        ob_start();
-        (new Example())->wp_head();
-        $output = ob_get_clean();
+    public function testAddSettingsSubmenu() {
+        WP_Mock::userFunction('add_submenu_page', [
+            'args' => [
+                'options-general.php',
+                'WP Plugin Mold Settings',
+                'WP Plugin Mold',
+                'manage_options',
+                'wp-plugin-mold-settings',
+                [$this->example, 'settingsPageContent']
+            ],
+            'times' => 1,
+        ]);
 
-        $expected_output = '<!-- Example Plugin Output: ' . esc_html__('Hello, World!', 'wp-plugin-mold') . ' -->';
-        $this->assertEquals($expected_output, $output);
+        $this->example->addSettingsSubmenu();
+        $this->assertConditionsMet();
+    }
+
+    /**
+     * Test that the settingsPageContent method outputs the expected value.
+     */
+    public function testSettingsPageContent() {
+        $this->helpers->shouldReceive('PLUGIN_VERSION')->andReturn('1.0.0');
+        ob_start();
+        $this->example->settingsPageContent();
+        $output = ob_get_clean();
+        $this->assertEquals('1.0.0', $output);
     }
 }

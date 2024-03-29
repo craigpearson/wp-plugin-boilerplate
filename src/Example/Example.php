@@ -7,8 +7,7 @@
 
 namespace WpPluginMold\Example;
 
-use function add_action;
-use function remove_action;
+use WpPluginMold\Utils\Helpers;
 
 /**
  * Example class for the plugin
@@ -16,22 +15,50 @@ use function remove_action;
  * @package WpPluginMold
  */
 class Example {
+
+	/** @var Helpers The Helpers instance */
+    private $helpers;
+
+    /**
+     * The Helpers instance.
+     *
+     * @param Helpers $helpers The Helpers instance.
+     */
+    public function __construct(Helpers $helpers) {
+        $this->helpers = $helpers;
+    }
+
 	/**
 	 * The initialization method for the service, called by the container.
 	 *
 	 * @return void
 	 */
 	public function boot(): void {
-		add_action( 'wp_head', [ $this, 'wp_head' ] );
-		remove_action( 'wp_head', [ $this, 'wp_head'] );
-	}
+        add_action('admin_menu', [$this, 'addSettingsSubmenu']);
+    }
 
 	/**
-	 * An example method that hooks into the `wp_head` action.
+	 * Add Settings Submenu
 	 *
 	 * @return void
 	 */
-	public function wp_head(): void {
-		echo '<!-- Example Plugin Output: ' . esc_html__( 'Hello, World!', 'wp-plugin-mold' ) . ' -->';
-	}
+    public function addSettingsSubmenu(): void {
+        add_submenu_page(
+            'options-general.php',
+            'WP Plugin Mold Settings',
+            'WP Plugin Mold',
+            'manage_options',
+            'wp-plugin-mold-settings',
+            [$this, 'settingsPageContent']
+        );
+    }
+
+	/**
+	 * Render Settings Submenu Content
+	 *
+	 * @return void
+	 */
+    public function settingsPageContent(): void {
+        echo $this->helpers::PLUGIN_VERSION;
+    }
 }
