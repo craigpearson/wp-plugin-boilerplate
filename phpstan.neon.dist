@@ -8,3 +8,5 @@ parameters:
   excludePaths:
     - */tests/*
     - */languages/*
+    - */node_modules/*
+    - */vendor/*
