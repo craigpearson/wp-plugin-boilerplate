@@ -1,10 +1,10 @@
 <?php
 /**
- * Plugin Name:       My Custom Plugin
+ * Plugin Name:       WP Plugin Mold
  * Plugin URI:        https://example.com/wp-plugin-mold
  * Description:       A brief description of the plugin.
  * Version:           1.0.0
- * Requires at least: 5.0
+ * Requires at least: 6.4.3
  * Requires PHP:      8.0
  * Author:            Your Name
  * Author URI:        https://example.com
@@ -16,7 +16,6 @@
  * @package           WpPluginMold
  */
 
-// exit on direct access
 defined( 'ABSPATH' ) || exit;
 
 if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
