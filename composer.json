@@ -1,5 +1,5 @@
 {
-    "name": "craigpearson/wp-plugin-boilerplate",
+    "name": "craigpearson/wp-plugin-mold",
     "description": "Bootstrap a WordPress plugin via composer, with goodies such as asset minification, PSR-4 Autoloading via Jetpacks autoloading feature, and a choice of linting tools",
     "type": "wpackagist-plugin",
     "version": "1.0.0",
