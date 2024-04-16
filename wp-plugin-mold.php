@@ -3,13 +3,13 @@
  * Plugin Name:       WP Plugin Mold
  * Plugin URI:        https://example.com/wp-plugin-mold
  * Description:       A mold for creating WordPress plugins.
- * Version:           1.0.0
+ * Version:           1.0.0-alpha
  * Requires at least: 6.4.3
  * Requires PHP:      8.0
  * Author:            Your Name
  * Author URI:        https://example.com
- * License:           GPL v2 or later
- * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * License:           GPL-3.0-or-later
+ * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
  * Update URI:        https://example.com/wp-plugin-mold-update
  * Text Domain:       wp-plugin-mold
  * Domain Path:       /languages

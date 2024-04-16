@@ -2,7 +2,7 @@
     "name": "craigpearson/wp-plugin-mold",
     "description": "A mold for creating WordPress plugins.",
     "type": "wpackagist-plugin",
-    "version": "1.0.0",
+    "version": "1.0.0.alpha",
     "require": {
         "automattic/jetpack-autoloader": "^2.12",
         "composer/installers": "^2.2",
@@ -21,7 +21,7 @@
         "szepeviktor/phpstan-wordpress": "^1.3",
         "10up/wp_mock": "^1.0"
     },
-    "license": "WTFPL V2",
+    "license": "GPL-3.0-or-later",
     "autoload": {
         "psr-4": {
             "WpPluginMold\\": "src/"
