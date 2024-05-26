@@ -2,9 +2,13 @@ name: Run Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, workflow ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, workflow ]
+
+env:
+  IGNORED_PHP_VERSIONS: "" # Space-separated list of ignored PHP versions
+  IGNORED_WP_VERSIONS: "6.5.1" # Space-separated list of ignored WordPress versions
 
 jobs:
   fetch-versions:
@@ -14,7 +18,7 @@ jobs:
       wp-versions: ${{ steps.set-wp-versions.outputs.versions }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Extract PHP and WP version requirements
         id: extract
@@ -28,15 +32,41 @@ jobs:
         id: set-php-versions
         run: |
           MIN_PHP_VERSION=${{ env.PHP_VERSION }}
-          PHP_VERSIONS=$(curl -s https://api.github.com/repos/php/php-src/git/refs/tags | jq -r '.[].ref' | grep -E 'refs/tags/php-[0-9]+\.[0-9]+\.[0-9]+$' | sed 's#refs/tags/php-##' | grep -vE 'alpha|beta|rc' | awk -v min=$MIN_PHP_VERSION '$1 >= min' | jq -cR '[split("\n")[] | select(length > 0)]')
-          echo "versions=${PHP_VERSIONS}" >> $GITHUB_OUTPUT
+          IGNORED_PHP_VERSIONS=(${IGNORED_PHP_VERSIONS})
+          # Fetch PHP versions and filter out the latest minor versions
+          PHP_VERSIONS=$(curl -s https://api.github.com/repos/php/php-src/git/refs/tags | jq -r '.[].ref' | grep -E 'refs/tags/php-[0-9]+\.[0-9]+\.[0-9]+$' | sed 's#refs/tags/php-##' | grep -vE 'alpha|beta|rc' | awk -v min=$MIN_PHP_VERSION '$1 >= min')
+          echo "Fetched PHP Versions: $PHP_VERSIONS"
+          LATEST_PHP_VERSIONS=$(echo "$PHP_VERSIONS" | awk -F. '{print $1"."$2"."$3}' | sort -t. -k1,1n -k2,2n -k3,3n | awk -F. '{
+            major_minor=$1"."$2
+            latest[major_minor]=$0
+          } END {
+            for (i in latest) print latest[i]
+          }')
+          if [ -n "${IGNORED_PHP_VERSIONS[*]}" ]; then
+            LATEST_PHP_VERSIONS=$(echo "$LATEST_PHP_VERSIONS" | grep -v -E "$(IFS="|"; echo "${IGNORED_PHP_VERSIONS[*]}")")
+          fi
+          echo "Latest PHP Versions: $LATEST_PHP_VERSIONS"
+          PHP_VERSIONS_JSON=$(echo "$LATEST_PHP_VERSIONS" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "PHP_VERSIONS=$PHP_VERSIONS_JSON" >> $GITHUB_ENV
+          echo "versions=$PHP_VERSIONS_JSON" >> $GITHUB_OUTPUT
 
       - name: Fetch available WP versions
         id: set-wp-versions
         run: |
           MIN_WP_VERSION=${{ env.WP_VERSION }}
-          WP_VERSIONS=$(curl -s https://api.github.com/repos/WordPress/WordPress/git/refs/tags | jq -r '.[].ref' | grep -E 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+$' | sed 's#refs/tags/##' | awk -v min=$MIN_WP_VERSION '$1 >= min' | jq -cR '[split("\n")[] | select(length > 0)]')
-          echo "versions=${WP_VERSIONS}" >> $GITHUB_OUTPUT
+          IGNORED_WP_VERSIONS=(${IGNORED_WP_VERSIONS})
+          WP_VERSIONS=$(curl -s https://api.github.com/repos/WordPress/WordPress/git/refs/tags | jq -r '.[].ref' | grep -E 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+$' | sed 's#refs/tags/##' | awk -v min=$MIN_WP_VERSION '$1 >= min')
+          WP_VERSIONS_JSON=$(echo "$WP_VERSIONS" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          if [ -n "${IGNORED_WP_VERSIONS[*]}" ]; then
+            WP_VERSIONS_JSON=$(echo "$WP_VERSIONS_JSON" | jq -c --argjson ignored "$(jq -n '$ARGS.positional' --args ${IGNORED_WP_VERSIONS[@]})" 'map(select(. as $v | $ignored | index($v) | not))')
+          fi
+          echo "WP_VERSIONS=$WP_VERSIONS_JSON" >> $GITHUB_ENV
+          echo "versions=$WP_VERSIONS_JSON" >> $GITHUB_OUTPUT
+
+      - name: Debug Outputs
+        run: |
+          echo "PHP Versions JSON: ${{ steps.set-php-versions.outputs.versions }}"
+          echo "WP Versions JSON: ${{ steps.set-wp-versions.outputs.versions }}"
 
   run-tests:
     needs: fetch-versions
@@ -47,17 +77,11 @@ jobs:
         wp-version: ${{ fromJson(needs.fetch-versions.outputs.wp-versions) }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
           tools: composer, wp-cli
-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
 
       - name: Download WordPress
         run: wp core download --version=${{ matrix.wp-version }} --path=wordpress
@@ -65,16 +89,25 @@ jobs:
       - name: Create wp-config.php
         run: wp config create --path=wordpress --dbname=wordpress --dbuser=root --dbpass=root --dbhost=127.0.0.1 --skip-check
 
+      - name: Create Database
+        run: wp db create --path=wordpress
+
       - name: Install WordPress
         run: wp core install --path=wordpress --url=http://localhost --title="Test Site" --admin_user=admin --admin_password=admin --admin_email=test@example.com
 
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: wordpress/wp-content/plugins/wp-plugin-mold
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --working-dir=wordpress/wp-content/plugins/wp-plugin-mold
+
       - name: Install and activate the plugin
-        run: |
-          cp -r . wordpress/wp-content/plugins/wp-plugin-mold
-          wp plugin activate wp-plugin-mold --path=wordpress
+        run: wp plugin activate wp-plugin-mold --path=wordpress
 
       - name: Run PHP tests
-        run: composer test
+        run: composer test --working-dir=wordpress/wp-content/plugins/wp-plugin-mold
 
       - name: Run WordPress plugin activation test
         run: wp eval 'echo "Plugin activated successfully\n";' --path=wordpress
