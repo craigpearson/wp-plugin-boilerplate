@@ -149,18 +149,18 @@ class PluginSetup {
 	}
 
 	/**
-	 * Update the namespace in the src directory.
+	 * Update the namespace in the given directory.
 	 *
+	 * @param string $directory_path The path to the directory to update.
 	 * @return void
 	 */
-	private function update_src_directory(): void {
-		$src_directory = $this->project_root . DIRECTORY_SEPARATOR . 'src';
-		if ( ! is_dir( $src_directory ) ) {
-			echo "The src directory does not exist. Please check your project structure.\n";
+	private function update_directory_namespace( string $directory_path ): void {
+		if ( ! is_dir( $directory_path ) ) {
+			echo "The directory {$directory_path} does not exist. Please check your project structure.\n";
 			return;
 		}
 
-		$directory = new RecursiveDirectoryIterator( $src_directory );
+		$directory = new RecursiveDirectoryIterator( $directory_path );
 		$iterator = new RecursiveIteratorIterator( $directory );
 
 		foreach ( $iterator as $file ) {
@@ -171,7 +171,7 @@ class PluginSetup {
 			}
 		}
 
-		echo "Namespace updated in src directory.\n";
+		echo "Namespace updated in {$directory_path} directory.\n";
 	}
 
 	/**
@@ -252,7 +252,8 @@ class PluginSetup {
 	 */
 	public function execute_setup(): void {
 		$this->update_plugin_file();
-		$this->update_src_directory();
+		$this->update_directory_namespace( $this->project_root . DIRECTORY_SEPARATOR . 'src' );
+		$this->update_directory_namespace( $this->project_root . DIRECTORY_SEPARATOR . 'tests' );
 		$this->update_composer_json();
 		$this->regenerate_autoload_files();
 		echo "Your plugin setup is now complete.\n";
