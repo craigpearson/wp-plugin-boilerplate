@@ -7,15 +7,15 @@
 
 namespace WpPluginMold;
 
-use Psr\Container\ContainerInterface;
-use Psr\Container\NotFoundExceptionInterface;
+use WpPluginMold\Exception\ContainerException;
+use WpPluginMold\Exception\ContainerNotFoundException;
 
 /**
  * Service Container for the plugin.
  *
  * @package WpPluginMold
  */
-class ServiceContainer implements ContainerInterface {
+class ServiceContainer {
 	/**
 	 * The services registered with the container.
 	 *
@@ -26,7 +26,7 @@ class ServiceContainer implements ContainerInterface {
 	/**
 	 * The instances of services that have been created.
 	 *
-	 * @var array<string, mixed>
+	 * @var array<string, object>
 	 */
 	protected array $instances = [];
 
@@ -34,28 +34,32 @@ class ServiceContainer implements ContainerInterface {
 	 * Registers a service with the container.
 	 *
 	 * @param string   $name The name of the service.
-	 * @param callable $callable The callable that will create the service.
+	 * @param callable $call The callable that will create the service.
 	 * @return void
 	 */
-	public function register( string $name, callable $callable ): void {
-		$this->services[ $name ] = $callable;
+	public function register( string $name, callable $call ): void {
+		$this->services[ $name ] = $call;
 	}
 
 	/**
-	 * Boots the container, creating instances of all services.
+	 * Gets a service from the container.
 	 *
 	 * @param string $id The ID of the service.
-	 * @return mixed The service instance.
-	 *
+	 * @return object The service instance.
 	 * @throws ContainerNotFoundException If the service is not found.
+	 * @throws ContainerException If an error occurs while creating the service.
 	 */
-	public function get( $id ) {
-		if ( ! $this->has( $id ) ) {
-			throw new ContainerNotFoundException( esc_html__( 'No service found for ID:', 'wp-plugin-mold' ) . ' ' . esc_html( $id ) );
+	public function get( string $id ): object {
+		if ( ! isset( $this->services[ $id ] ) ) {
+			throw new ContainerNotFoundException( 'No service found for ID: ' . esc_html( $id ) );
 		}
 
 		if ( ! isset( $this->instances[ $id ] ) ) {
-			$this->instances[ $id ] = call_user_func( $this->services[ $id ], $this );
+			$instance = call_user_func( $this->services[ $id ], $this );
+			if ( ! is_object( $instance ) ) {
+				throw new ContainerException( 'The service must return an object, ' . esc_html( gettype( $instance ) ) . ' returned instead.' );
+			}
+			$this->instances[ $id ] = $instance;
 		}
 
 		return $this->instances[ $id ];
@@ -67,8 +71,36 @@ class ServiceContainer implements ContainerInterface {
 	 * @param string $id The ID of the service.
 	 * @return bool
 	 */
-	public function has( $id ): bool {
+	public function has( string $id ): bool {
 		return isset( $this->services[ $id ] );
+	}
+
+	/**
+	 * Deregisters a service from the container.
+	 *
+	 * @param string $id The ID of the service.
+	 * @return void
+	 */
+	public function deregister( string $id ): void {
+		unset( $this->services[ $id ], $this->instances[ $id ] );
+	}
+
+	/**
+	 * Returns the services registered with the container.
+	 *
+	 * @throws ContainerException If a service is not an object.
+	 * @return array<string, object>
+	 */
+	public function get_services(): array {
+		$services = [];
+		foreach ( $this->services as $id => $factory ) {
+			$service = $this->get( $id );
+			if ( ! is_object( $service ) ) {
+				throw new ContainerException( 'Expected object, received ' . esc_html( gettype( $service ) ) );
+			}
+			$services[ $id ] = $service;
+		}
+		return $services;
 	}
 
 	/**
@@ -78,9 +110,9 @@ class ServiceContainer implements ContainerInterface {
 	 * @param array<string> $dependencies The dependencies to inject into the class.
 	 * @return callable
 	 */
-	public static function createService( string $class_name, array $dependencies = [] ): callable {
+	public static function create_service( string $class_name, array $dependencies = [] ): callable {
 		return function ( $container ) use ( $class_name, $dependencies ) {
-			$full_class_name = __NAMESPACE__ . "\\$class_name";
+			$full_class_name = __NAMESPACE__ . '\\' . $class_name;
 			$constructor_args = array_map(
 				function ( $dependency_name ) use ( $container ) {
 					return $container->get( $dependency_name );

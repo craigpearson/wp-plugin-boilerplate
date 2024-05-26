@@ -8,14 +8,14 @@
 	<config name="prefixes" value="" />
 	<config name="warningSeverity" value="0"/>
 
-	<file>./src/</file>
-	<file>./wp-plugin-mold.php</file>
+	<file>wp-plugin-mold.php</file>
+	<file>src</file>
 
 	<arg value="sp"/> <!-- Show sniff and progress -->
 	<arg name="severity" value="1" /> <!-- Set severity argument -->
 	<arg name="colors"/> <!-- Show results with colors. Disable if working on Windows -->
 	<arg name="parallel" value="8"/> <!-- Enables parallel processing when available for faster results -->
-	<arg name="extensions" value="php,js"/> <!-- Limit to PHP and JS files -->
+	<arg name="extensions" value="php"/> <!-- Limit to PHP files -->
 	<ini name="memory_limit" value="-1" /> <!-- Increase memory limit -->
 
 	<!-- Exclude certain folders and files from being checked. -->
@@ -37,6 +37,7 @@
 
 	<!-- WordPress Extra -->
 	<rule ref="WordPress-Extra">
+		<exclude name="Generic.Arrays.DisallowShortArraySyntax.Found" />
 		<exclude name="Universal.Arrays.DisallowShortArraySyntax.Found" />
 		<exclude name="Generic.Formatting.MultipleStatementAlignment.NotSameWarning" />
 		<exclude name="WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned" />

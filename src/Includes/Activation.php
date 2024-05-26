@@ -16,15 +16,19 @@ use WpPluginMold\Utils\Helpers;
  */
 class Activation {
 
-	/** @var Helpers The Helpers instance */
-    private $helpers;
+	/**
+	 * Helpers instance.
+	 *
+	 * @var Helpers The Helpers instance.
+	 */
+	private $helpers;
 
-    /**
-     * Constructor.
-     *
-     * @param Helpers $helpers The Helpers instance.
-     */
-    public function __construct(Helpers $helpers) {
+	/**
+	 * Constructor.
+	 *
+	 * @param Helpers $helpers The Helpers instance.
+	 */
+	public function __construct( Helpers $helpers ) {
 		$this->helpers = $helpers;
 	}
 
@@ -39,6 +43,5 @@ class Activation {
 	 * Activation hook callback.
 	 */
 	public function activate(): void {
-
 	}
 }

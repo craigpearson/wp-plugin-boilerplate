@@ -1,10 +1,16 @@
 <?php
+/**
+ * Services configuration for the plugin.
+ *
+ * @package WpPluginMold
+ */
+
 use WpPluginMold\ServiceContainer;
 
-return [
-	'Helpers' => ServiceContainer::createService('Utils\Helpers'),
-	'Activation' => ServiceContainer::createService('Includes\Activation' [ 'Helpers' ]),
-	'Deactivation' => ServiceContainer::createService('Includes\Deactivation' [ 'Helpers' ]),
-    'Example' => ServiceContainer::createService('Example\Example', [ 'Helpers' ]),
-	'Localization' => ServiceContainer::createService('Localization\Localization'),
-];
+return array(
+	'Helpers' => ServiceContainer::create_service( 'Utils\Helpers' ),
+	'Activation' => ServiceContainer::create_service( 'Includes\Activation', array( 'Helpers' ) ),
+	'Deactivation' => ServiceContainer::create_service( 'Includes\Deactivation', array( 'Helpers' ) ),
+	'Example' => ServiceContainer::create_service( 'Example\Example', array( 'Helpers' ) ),
+	'Localization' => ServiceContainer::create_service( 'Localization\Localization' ),
+);
