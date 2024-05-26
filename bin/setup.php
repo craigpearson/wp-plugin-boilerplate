@@ -251,13 +251,13 @@ class PluginSetup {
 	 * @return void
 	 */
 	private function update_test_yml(): void {
-		$test_yml_file = $this->project_root . DIRECTORY_SEPARATOR . '.github' . DIRECTORY_SEPARATOR . 'workflows' . DIRECTORY_SEPARATOR . 'test.yml';
-		if (file_exists($test_yml_file)) {
-			$test_yml_content = file_get_contents($test_yml_file);
-			$plugin_name_slug = strtolower(str_replace(' ', '-', $this->details['plugin_name']));
-			$test_yml_content = str_replace('wp-plugin-mold', $plugin_name_slug, $test_yml_content);
-			file_put_contents($test_yml_file, $test_yml_content);
-			echo "test.yml file updated.\n";
+		$test_yml_file = $this->project_root . DIRECTORY_SEPARATOR . '.github' . DIRECTORY_SEPARATOR . 'workflows' . DIRECTORY_SEPARATOR . 'tests.yml';
+		if ( file_exists( $test_yml_file ) ) {
+			$test_yml_content = file_get_contents( $test_yml_file );
+			$plugin_name_slug = strtolower( str_replace( ' ', '-', $this->details['plugin_name'] ) );
+			$test_yml_content = str_replace( 'wp-plugin-mold', $plugin_name_slug, $test_yml_content );
+			file_put_contents( $test_yml_file, $test_yml_content );
+			echo "tests.yml file updated.\n";
 		}
 	}
 
