@@ -21,52 +21,29 @@ jobs:
         run: |
           PHP_VERSION=$(grep -i "Requires PHP" wp-plugin-mold.php | sed -E 's/.*Requires PHP:\s*([0-9\.]+).*/\1/')
           WP_VERSION=$(grep -i "Requires at least" wp-plugin-mold.php | sed -E 's/.*Requires at least:\s*([0-9\.]+).*/\1/')
-          echo "Extracted PHP_VERSION=${PHP_VERSION}"
-          echo "Extracted WP_VERSION=${WP_VERSION}"
           echo "PHP_VERSION=${PHP_VERSION}" >> $GITHUB_ENV
           echo "WP_VERSION=${WP_VERSION}" >> $GITHUB_ENV
-
-      - name: Debug PHP and WP versions
-        run: |
-          echo "PHP_VERSION from env: $PHP_VERSION"
-          echo "WP_VERSION from env: $WP_VERSION"
-        env:
-          PHP_VERSION: ${{ env.PHP_VERSION }}
-          WP_VERSION: ${{ env.WP_VERSION }}
 
       - name: Fetch available PHP versions
         id: set-php-versions
         run: |
           MIN_PHP_VERSION=${{ env.PHP_VERSION }}
-          echo "Minimum PHP version required: $MIN_PHP_VERSION"
-          PHP_VERSIONS=$(curl -s https://www.php.net/releases | grep -Po '(?<=version">)[^<]+' | sort -V | awk -v min=$MIN_PHP_VERSION '$1 >= min')
-          echo "Filtered PHP versions: $PHP_VERSIONS"
-          PHP_VERSIONS_JSON=$(echo $PHP_VERSIONS | jq -cR '[split(" ")[] | select(length > 0)]')
-          echo "PHP_VERSIONS_JSON=${PHP_VERSIONS_JSON}"
-          echo "versions=${PHP_VERSIONS_JSON}" >> $GITHUB_OUTPUT
+          PHP_VERSIONS=$(curl -s https://api.github.com/repos/php/php-src/git/refs/tags | jq -r '.[].ref' | grep -E 'refs/tags/php-[0-9]+\.[0-9]+\.[0-9]+$' | sed 's#refs/tags/php-##' | grep -vE 'alpha|beta|rc' | awk -v min=$MIN_PHP_VERSION '$1 >= min' | jq -cR '[split("\n")[] | select(length > 0)]')
+          echo "versions=${PHP_VERSIONS}" >> $GITHUB_OUTPUT
 
       - name: Fetch available WP versions
         id: set-wp-versions
         run: |
           MIN_WP_VERSION=${{ env.WP_VERSION }}
-          echo "Minimum WordPress version required: $MIN_WP_VERSION"
-          WP_VERSIONS=$(curl -s https://api.wordpress.org/core/version-check/1.7/ | jq -r '.offers[].version' | sort -V | awk -v min=$MIN_WP_VERSION '$1 >= min')
-          echo "Filtered WordPress versions: $WP_VERSIONS"
-          WP_VERSIONS_JSON=$(echo $WP_VERSIONS | jq -cR '[split(" ")[] | select(length > 0)]')
-          echo "WP_VERSIONS_JSON=${WP_VERSIONS_JSON}"
-          echo "versions=${WP_VERSIONS_JSON}" >> $GITHUB_OUTPUT
-
-      - name: Debug fetched versions
-        run: |
-          echo "PHP Versions: ${{ steps.set-php-versions.outputs.versions }}"
-          echo "WP Versions: ${{ steps.set-wp-versions.outputs.versions }}"
+          WP_VERSIONS=$(curl -s https://api.github.com/repos/WordPress/WordPress/git/refs/tags | jq -r '.[].ref' | grep -E 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+$' | sed 's#refs/tags/##' | awk -v min=$MIN_WP_VERSION '$1 >= min' | jq -cR '[split("\n")[] | select(length > 0)]')
+          echo "versions=${WP_VERSIONS}" >> $GITHUB_OUTPUT
 
   run-tests:
     needs: fetch-versions
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ${{ fromJson(needs.fetch-versions.outputs.versions) }}
+        php-version: ${{ fromJson(needs.fetch-versions.outputs.php-versions) }}
         wp-version: ${{ fromJson(needs.fetch-versions.outputs.wp-versions) }}
 
     steps:
