@@ -13,24 +13,30 @@
  * Update URI:        https://example.com/wp-plugin-mold-update
  * Text Domain:       wp-plugin-mold
  * Domain Path:       /languages
+ *
  * @package           WpPluginMold
  */
 
 defined( 'ABSPATH' ) || exit;
 
 if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
-    require_once __DIR__ . '/vendor/autoload.php';
+	require_once __DIR__ . '/vendor/autoload.php';
 }
 
 use WpPluginMold\ServiceContainer;
 
-$container = new ServiceContainer();
-
 if ( file_exists( __DIR__ . '/services.php' ) ) {
-    $services = require __DIR__ . '/services.php';
-    foreach ($services as $name => $serviceCallable) {
-        $container->register($name, $serviceCallable);
-    }
-}
+	$services = require __DIR__ . '/services.php';
 
-$container->boot();
+	$mold_container = new ServiceContainer();
+
+	foreach ( $services as $name => $service_callable ) {
+		$mold_container->register( $name, $service_callable );
+	}
+
+	foreach ( $mold_container->get_services() as $service_id => $service ) {
+		if ( is_object( $service ) && method_exists( $service, 'boot' ) ) {
+			$service->boot();
+		}
+	}
+}
