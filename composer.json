@@ -5,8 +5,7 @@
     "version": "1.0.0.alpha",
     "require": {
         "automattic/jetpack-autoloader": "^2.12",
-        "composer/installers": "^2.2",
-        "psr/container": "^2.0"
+        "composer/installers": "^2.2"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.6",
