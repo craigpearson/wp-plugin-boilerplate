@@ -128,7 +128,7 @@ class PluginSetup {
 			'WP Plugin Mold' => $this->details['plugin_name'],
 			'https://example.com/wp-plugin-mold' => $this->details['plugin_author_uri'],
 			'A mold for creating WordPress plugins.' => $this->details['plugin_description'],
-			'1.0.0-alpha' => $this->details['plugin_version'],
+			'1.0.1-alpha' => $this->details['plugin_version'],
 			'6.4.3' => $this->details['plugin_requires_wp_at_least'],
 			'8.0' => $this->details['plugin_requires_php'],
 			'Your Name' => $this->details['plugin_author'],
