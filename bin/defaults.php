@@ -9,7 +9,7 @@ return [
 	'plugin_name' => 'WP Plugin Mold',
 	'plugin_uri' => 'https://example.com/wp-plugin-mold',
 	'plugin_description' => 'A mold for creating WordPress plugins.',
-	'plugin_version' => '1.0.0',
+	'plugin_version' => '1.0.1-alpha',
 	'plugin_requires_wp_at_least' => '6.4.3',
 	'plugin_requires_php' => '8.0',
 	'plugin_author' => 'Your Name',

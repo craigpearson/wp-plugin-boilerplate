@@ -2,7 +2,7 @@
     "name": "craigpearson/wp-plugin-mold",
     "description": "A mold for creating WordPress plugins.",
     "type": "wpackagist-plugin",
-    "version": "1.0.0.alpha",
+    "version": "1.0.1.alpha",
     "require": {
         "automattic/jetpack-autoloader": "^2.12",
         "composer/installers": "^2.2"

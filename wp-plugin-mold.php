@@ -3,7 +3,7 @@
  * Plugin Name:       WP Plugin Mold
  * Plugin URI:        https://example.com/wp-plugin-mold
  * Description:       A mold for creating WordPress plugins.
- * Version:           1.0.0-alpha
+ * Version:           1.0.1-alpha
  * Requires at least: 6.4.3
  * Requires PHP:      8.0
  * Author:            Your Name
