@@ -41,9 +41,9 @@
         "post-create-project-cmd": "php bin/setup.php",
         "post-install-cmd": "composer dump-autoload -o",
         "post-update-cmd": "composer dump-autoload -o",
-        "phpcs": "phpcs --config-set ignore_warnings_on_exit 1 --extensions=php src/",
-        "phpcbf": "phpcbf --extensions=php src/",
-        "phpstan": "phpstan analyse -c phpstan.neon.dist",
+        "phpcs": "phpcs --standard=.phpcs.xml.dist",
+    	"phpcbf": "phpcbf --standard=.phpcs.xml.dist",
+        "phpstan": "phpstan analyse -c phpstan.neon.dist --memory-limit=1G",
         "test": ["@phpcs", "@phpstan", "@phpunit"],
         "fix": ["@phpcbf"],
         "phpunit": "phpunit"
