@@ -1,9 +1,16 @@
 <?php
 /**
- * Setup script for the plugin.
+ * Upon setup, rename the plugin as needed, then self destruct.
  *
  * @package wp-plugin-mold
  */
+
+declare( strict_types = 1 );
+
+namespace WpPluginMold;
+
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 /**
  * Plugin Setup class.
@@ -38,22 +45,26 @@ class PluginSetup {
 	 */
 	public function __construct() {
 		$this->project_root = dirname( __DIR__ );
-		$this->loadDefaults();
-		$this->details = $this->promptForDetails();
+		$this->load_defaults();
+		$this->details = $this->prompt_for_details();
 	}
 
 	/**
 	 * Run the setup process.
+	 *
+	 * @return void
 	 */
-	public static function run() {
+	public static function run(): void {
 		$setup = new self();
-		$setup->executeSetup();
+		$setup->execute_setup();
 	}
 
 	/**
 	 * Load the default values for the plugin details.
+	 *
+	 * @return void
 	 */
-	private function loadDefaults() {
+	private function load_defaults(): void {
 		$defaults_path = $this->project_root . '/defaults.php';
 		if ( file_exists( $defaults_path ) ) {
 			$this->defaults = include $defaults_path;
@@ -67,7 +78,7 @@ class PluginSetup {
 	 *
 	 * @return array
 	 */
-	private function promptForDetails() {
+	private function prompt_for_details(): array {
 		echo "Let's set up your new plugin\n";
 		$details = [];
 		$fields = [
@@ -79,29 +90,25 @@ class PluginSetup {
 			'plugin_version' => 'Plugin version',
 			'plugin_requires_wp_at_least' => 'Minimum WordPress version required',
 			'plugin_requires_php' => 'Minimum PHP version required',
-			'plugin_license' => 'Plugin license',
+			'plugin_license' => 'Plugin license as per SPDX identifier: https://spdx.org/licenses/',
 			'plugin_license_uri' => 'Plugin license URI',
 			'plugin_update_uri' => 'Plugin update URI',
 			'plugin_domain_path' => 'Plugin domain path',
 			'namespace' => 'PHP namespace',
+			'composer_name' => 'Composer name i.e. (vendor/name)',
 		];
 
 		foreach ( $fields as $key => $prompt ) {
+			$default_value = $this->defaults[ $key ] ?? '';
+			$details[ $key ] = readline( $prompt . ' [' . $default_value . ']: ' ) ?: $default_value;
 
 			switch ( $key ) {
 				case 'plugin_name':
-					$details[ $key ] = readline( $prompt . ' [' . $this->defaults[ $key ] . ']: ' ) ?: $this->defaults[ $key ];
-					// Update defaults based on the plugin name.
-					$this->defaults['namespace'] = $this->generateNamespace( $details[ $key ] );
-					$this->defaults['plugin_text_domain'] = $this->generateTextDomain( $details[ $key ] );
+					$this->defaults['namespace'] = $this->generate_namespace( $details[ $key ] );
+					$this->defaults['plugin_text_domain'] = $this->generate_text_domain( $details[ $key ] );
 					break;
 				case 'plugin_author_uri':
-					$details[ $key ] = readline( $prompt . ' [' . $this->defaults[ $key ] . ']: ' ) ?: $this->defaults[ $key ];
 					$this->defaults['plugin_uri'] = $details[ $key ];
-					break;
-				default:
-					// Use the possibly updated defaults for the current key.
-					$details[ $key ] = readline( $prompt . ' [' . $this->defaults[ $key ] . ']: ' ) ?: $this->defaults[ $key ];
 					break;
 			}
 		}
@@ -111,24 +118,25 @@ class PluginSetup {
 
 	/**
 	 * Update the main plugin file with the plugin details.
+	 *
+	 * @return void
 	 */
-	private function updatePluginFile() {
-		$plugin_file = $this->project_root . DIRECTORY_SEPARATOR . 'wp-plugin-mold.php'; // Adjust to your main plugin file
+	private function update_plugin_file(): void {
+		$plugin_file = $this->project_root . DIRECTORY_SEPARATOR . 'wp-plugin-mold.php';
 		$plugin_content = file_get_contents( $plugin_file );
 		$replacements = [
-			'WP Plugin Mold' => $this->details['pluginName'],
-			'https://example.com/wp-plugin-mold' => $this->details['pluginUri'],
-			'A mold for creating WordPress plugins.' => $this->details['pluginDescription'],
-			'1.0.0-alpha' => $this->details['pluginVersion'],
-			'6.4.3' => $this->details['pluginRequiresAtLeast'],
-			'8.0' => $this->details['pluginRequiresPhp'],
-			'Your Name' => $this->details['pluginAuthor'],
-			'https://example.com' => $this->details['pluginAuthorUri'],
-			'GPL-3.0-or-later' => $this->details['pluginLicense'],
-			'https://www.gnu.org/licenses/gpl-3.0.html' => $this->details['pluginLicenseUri'],
-			'https://example.com/wp-plugin-mold-update' => $this->details['pluginUpdateUri'],
-			'wp-plugin-mold' => $this->details['pluginTextDomain'],
-			'/languages' => $this->details['pluginDomainPath'],
+			'WP Plugin Mold' => $this->details['plugin_name'],
+			'https://example.com/wp-plugin-mold' => $this->details['plugin_author_uri'],
+			'A mold for creating WordPress plugins.' => $this->details['plugin_description'],
+			'1.0.0-alpha' => $this->details['plugin_version'],
+			'6.4.3' => $this->details['plugin_requires_wp_at_least'],
+			'8.0' => $this->details['plugin_requires_php'],
+			'Your Name' => $this->details['plugin_author'],
+			'https://example.com' => $this->details['plugin_author_uri'],
+			'GPL-3.0-or-later' => $this->details['plugin_license'],
+			'https://www.gnu.org/licenses/gpl-3.0.html' => $this->details['plugin_license_uri'],
+			'https://example.com/wp-plugin-mold-update' => $this->details['plugin_update_uri'],
+			'wp-plugin-mold' => $this->details['plugin_domain_path'],
 			'WpPluginMold' => $this->details['namespace'],
 		];
 
@@ -142,8 +150,10 @@ class PluginSetup {
 
 	/**
 	 * Update the namespace in the src directory.
+	 *
+	 * @return void
 	 */
-	private function updateSrcDirectory() {
+	private function update_src_directory(): void {
 		$src_directory = $this->project_root . DIRECTORY_SEPARATOR . 'src';
 		if ( ! is_dir( $src_directory ) ) {
 			echo "The src directory does not exist. Please check your project structure.\n";
@@ -167,11 +177,12 @@ class PluginSetup {
 	/**
 	 * Generate the namespace from the plugin name.
 	 *
+	 * The namespace is generated by converting the plugin name to PascalCase.
+	 *
 	 * @param string $plugin_name The plugin name.
 	 * @return string
 	 */
-	private function generateNamespace( $plugin_name ) {
-		// Convert to PascalCase for the namespace
+	private function generate_namespace( string $plugin_name ): string {
 		$name_parts = explode( ' ', strtolower( $plugin_name ) );
 		$namespace = array_map( 'ucfirst', $name_parts );
 		return implode( '', $namespace );
@@ -180,34 +191,51 @@ class PluginSetup {
 	/**
 	 * Generate the text domain from the plugin name.
 	 *
+	 * The text domain is generated by converting the plugin name to kebab-case.
+	 *
 	 * @param string $plugin_name The plugin name.
 	 * @return string
 	 */
-	private function generateTextDomain( $plugin_name ) {
-		// Convert to kebab-case for the text domain
+	private function generate_text_domain( string $plugin_name ): string {
 		$name_parts = explode( ' ', strtolower( $plugin_name ) );
 		return implode( '-', $name_parts );
 	}
 
 	/**
 	 * Update the composer.json file with the plugin details.
+	 *
+	 * @return void
 	 */
-	private function updateComposerJson() {
+	private function update_composer_json(): void {
 		$composer_file = $this->project_root . DIRECTORY_SEPARATOR . 'composer.json';
 		if ( file_exists( $composer_file ) ) {
 			$composer_content = json_decode( file_get_contents( $composer_file ), true );
+
 			// Update relevant fields in the composer.json file
-			// Example: $composer_content['require']['php'] = $this->details['pluginRequiresPhp'];
-			// $composer_content['name'] = strtolower(str_replace(' ', '-', $this->details['pluginName']));
+			$composer_content['name'] = $this->details['composer_name'];
+			$composer_content['description'] = $this->details['plugin_description'];
+			$composer_content['authors'][0]['name'] = $this->details['plugin_author'];
+			$composer_content['authors'][0]['email'] = $this->details['author_email'];
+
+			// Update the namespaces in autoload and autoload-dev
+			$namespace = $this->details['namespace'] . '\\';
+			$composer_content['autoload']['psr-4'] = [ $namespace => 'src/' ];
+			if ( isset( $composer_content['autoload-dev']['psr-4'] ) ) {
+				$composer_content['autoload-dev']['psr-4'] = [ $namespace . 'Test\\' => 'tests/' ];
+			}
+
 			file_put_contents( $composer_file, json_encode( $composer_content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
 			echo "Composer.json updated.\n";
 		}
 	}
 
+
 	/**
 	 * Regenerate the Composer autoload files.
+	 *
+	 * @return void
 	 */
-	private function regenerateAutoloadFiles() {
+	private function regenerate_autoload_files(): void {
 		echo "Attempting to regenerate Composer autoload files...\n";
 		exec( 'composer dump-autoload -o', $output, $return_var );
 		if ( $return_var === 0 ) {
@@ -220,12 +248,14 @@ class PluginSetup {
 
 	/**
 	 * Execute the setup process.
+	 *
+	 * @return void
 	 */
-	public function executeSetup() {
-		$this->updatePluginFile();
-		$this->updateSrcDirectory();
-		$this->updateComposerJson();
-		$this->regenerateAutoloadFiles();
+	public function execute_setup(): void {
+		$this->update_plugin_file();
+		$this->update_src_directory();
+		$this->update_composer_json();
+		$this->regenerate_autoload_files();
 		echo "Your plugin setup is now complete.\n";
 	}
 }
