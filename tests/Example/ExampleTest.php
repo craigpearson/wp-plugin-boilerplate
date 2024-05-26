@@ -38,7 +38,7 @@ class ExampleTest extends TestCase {
      * Test that the boot method adds the expected action.
      */
     public function testBoot() {
-        WP_Mock::expectActionAdded('admin_menu', [$this->example, 'addSettingsSubmenu']);
+        WP_Mock::expectActionAdded('admin_menu', [$this->example, 'add_settings_submenu']);
         $this->example->boot();
         $this->assertHooksAdded();
     }
@@ -54,12 +54,12 @@ class ExampleTest extends TestCase {
                 'WP Plugin Mold',
                 'manage_options',
                 'wp-plugin-mold-settings',
-                [$this->example, 'settingsPageContent']
+                [$this->example, 'settings_page_content']
             ],
             'times' => 1,
         ]);
 
-        $this->example->addSettingsSubmenu();
+        $this->example->add_settings_submenu();
         $this->assertConditionsMet();
     }
 
@@ -69,7 +69,7 @@ class ExampleTest extends TestCase {
     public function testSettingsPageContent() {
         $this->helpers->shouldReceive('PLUGIN_VERSION')->andReturn('1.0.0');
         ob_start();
-        $this->example->settingsPageContent();
+        $this->example->settings_page_content();
         $output = ob_get_clean();
         $this->assertEquals('1.0.0', $output);
     }
