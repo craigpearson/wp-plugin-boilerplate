@@ -246,6 +246,22 @@ class PluginSetup {
 	}
 
 	/**
+	 * Update the test.yml file with the plugin details.
+	 *
+	 * @return void
+	 */
+	private function update_test_yml(): void {
+		$test_yml_file = $this->project_root . DIRECTORY_SEPARATOR . '.github' . DIRECTORY_SEPARATOR . 'workflows' . DIRECTORY_SEPARATOR . 'test.yml';
+		if (file_exists($test_yml_file)) {
+			$test_yml_content = file_get_contents($test_yml_file);
+			$plugin_name_slug = strtolower(str_replace(' ', '-', $this->details['plugin_name']));
+			$test_yml_content = str_replace('wp-plugin-mold', $plugin_name_slug, $test_yml_content);
+			file_put_contents($test_yml_file, $test_yml_content);
+			echo "test.yml file updated.\n";
+		}
+	}
+
+	/**
 	 * Execute the setup process.
 	 *
 	 * @return void
@@ -255,6 +271,7 @@ class PluginSetup {
 		$this->update_directory_namespace( $this->project_root . DIRECTORY_SEPARATOR . 'src' );
 		$this->update_directory_namespace( $this->project_root . DIRECTORY_SEPARATOR . 'tests' );
 		$this->update_composer_json();
+		$this->update_test_yml();
 		$this->regenerate_autoload_files();
 		echo "Your plugin setup is now complete.\n";
 	}
