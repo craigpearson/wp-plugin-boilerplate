@@ -30,7 +30,7 @@ jobs:
           MIN_PHP_VERSION=${{ env.PHP_VERSION }}
           PHP_VERSIONS=$(curl -s https://api.github.com/repos/php/php-src/git/refs/tags | jq -r '.[].ref' | grep -E 'refs/tags/php-[0-9]+\.[0-9]+\.[0-9]+$' | sed 's#refs/tags/php-##' | grep -vE 'alpha|beta|rc' | awk -v min=$MIN_PHP_VERSION '$1 >= min')
           PHP_VERSIONS_JSON=$(echo $PHP_VERSIONS | jq -Rnc '[inputs | split("\n") | .[] | select(length > 0)]')
-          echo "versions=${PHP_VERSIONS_JSON}" >> $GITHUB_OUTPUT
+          echo "versions=$PHP_VERSIONS_JSON" >> $GITHUB_OUTPUT
 
       - name: Fetch available WP versions
         id: set-wp-versions
@@ -38,7 +38,7 @@ jobs:
           MIN_WP_VERSION=${{ env.WP_VERSION }}
           WP_VERSIONS=$(curl -s https://api.github.com/repos/WordPress/WordPress/git/refs/tags | jq -r '.[].ref' | grep -E 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+$' | sed 's#refs/tags/##' | awk -v min=$MIN_WP_VERSION '$1 >= min')
           WP_VERSIONS_JSON=$(echo $WP_VERSIONS | jq -Rnc '[inputs | split("\n") | .[] | select(length > 0)]')
-          echo "versions=${WP_VERSIONS_JSON}" >> $GITHUB_OUTPUT
+          echo "versions=$WP_VERSIONS_JSON" >> $GITHUB_OUTPUT
 
   run-tests:
     needs: fetch-versions
@@ -59,7 +59,7 @@ jobs:
           tools: composer, wp-cli
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
+        run: composer install --prefer-dist --no-progress
 
       - name: Download WordPress
         run: wp core download --version=${{ matrix.wp-version }} --path=wordpress
