@@ -16,15 +16,19 @@ use WpPluginMold\Utils\Helpers;
  */
 class Deactivation {
 
-	/** @var Helpers The Helpers instance */
-    private $helpers;
+	/**
+	 * The Helpers instance.
+	 *
+	 * @var Helpers
+	 */
+	private $helpers;
 
-    /**
-     * Constructor.
-     *
-     * @param Helpers $helpers The Helpers instance.
-     */
-    public function __construct(Helpers $helpers) {
+	/**
+	 * Constructor.
+	 *
+	 * @param Helpers $helpers The Helpers instance.
+	 */
+	public function __construct( Helpers $helpers ) {
 		$this->helpers = $helpers;
 	}
 
@@ -32,7 +36,7 @@ class Deactivation {
 	 * Main method for the service, called by the container.
 	 */
 	public function boot(): void {
-		register_deactivation_hook( $this->helpers::PLUGIN_PATH . $this->helpers::PLUGIN_FILE, [ $this, 'deactivate' ] );
+		register_deactivation_hook( $this->helpers::PLUGIN_PATH . $this->helpers::PLUGIN_FILE, array( $this, 'deactivate' ) );
 	}
 
 	/**

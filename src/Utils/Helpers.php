@@ -30,6 +30,5 @@ class Helpers {
 	 * Main method for the service, called by the container.
 	 */
 	public function boot(): void {
-
 	}
 }
