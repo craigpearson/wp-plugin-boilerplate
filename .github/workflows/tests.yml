@@ -41,7 +41,9 @@ jobs:
           echo "Minimum PHP version required: $MIN_PHP_VERSION"
           PHP_VERSIONS=$(curl -s https://www.php.net/releases | grep -Po '(?<=version">)[^<]+' | sort -V | awk -v min=$MIN_PHP_VERSION '$1 >= min')
           echo "Filtered PHP versions: $PHP_VERSIONS"
-          echo "versions=$(echo $PHP_VERSIONS | jq -cR '[split(\" \")[] | select(length > 0)]')" >> $GITHUB_OUTPUT
+          PHP_VERSIONS_JSON=$(echo $PHP_VERSIONS | jq -cR '[split(" ")[] | select(length > 0)]')
+          echo "PHP_VERSIONS_JSON=${PHP_VERSIONS_JSON}"
+          echo "versions=${PHP_VERSIONS_JSON}" >> $GITHUB_OUTPUT
 
       - name: Fetch available WP versions
         id: set-wp-versions
@@ -50,7 +52,9 @@ jobs:
           echo "Minimum WordPress version required: $MIN_WP_VERSION"
           WP_VERSIONS=$(curl -s https://api.wordpress.org/core/version-check/1.7/ | jq -r '.offers[].version' | sort -V | awk -v min=$MIN_WP_VERSION '$1 >= min')
           echo "Filtered WordPress versions: $WP_VERSIONS"
-          echo "versions=$(echo $WP_VERSIONS | jq -cR '[split(\" \")[] | select(length > 0)]')" >> $GITHUB_OUTPUT
+          WP_VERSIONS_JSON=$(echo $WP_VERSIONS | jq -cR '[split(" ")[] | select(length > 0)]')
+          echo "WP_VERSIONS_JSON=${WP_VERSIONS_JSON}"
+          echo "versions=${WP_VERSIONS_JSON}" >> $GITHUB_OUTPUT
 
       - name: Debug fetched versions
         run: |
@@ -62,7 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ${{ fromJson(needs.fetch-versions.outputs.php-versions) }}
+        php-version: ${{ fromJson(needs.fetch-versions.outputs.versions) }}
         wp-version: ${{ fromJson(needs.fetch-versions.outputs.wp-versions) }}
 
     steps:
