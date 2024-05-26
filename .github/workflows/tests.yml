@@ -21,22 +21,41 @@ jobs:
         run: |
           PHP_VERSION=$(grep -i "Requires PHP" wp-plugin-mold.php | sed -E 's/.*Requires PHP:\s*([0-9\.]+).*/\1/')
           WP_VERSION=$(grep -i "Requires at least" wp-plugin-mold.php | sed -E 's/.*Requires at least:\s*([0-9\.]+).*/\1/')
+          echo "Extracted PHP_VERSION=${PHP_VERSION}"
+          echo "Extracted WP_VERSION=${WP_VERSION}"
           echo "PHP_VERSION=${PHP_VERSION}" >> $GITHUB_ENV
           echo "WP_VERSION=${WP_VERSION}" >> $GITHUB_ENV
+
+      - name: Debug PHP and WP versions
+        run: |
+          echo "PHP_VERSION from env: $PHP_VERSION"
+          echo "WP_VERSION from env: $WP_VERSION"
+        env:
+          PHP_VERSION: ${{ env.PHP_VERSION }}
+          WP_VERSION: ${{ env.WP_VERSION }}
 
       - name: Fetch available PHP versions
         id: set-php-versions
         run: |
           MIN_PHP_VERSION=${{ env.PHP_VERSION }}
+          echo "Minimum PHP version required: $MIN_PHP_VERSION"
           PHP_VERSIONS=$(curl -s https://www.php.net/releases | grep -Po '(?<=version">)[^<]+' | sort -V | awk -v min=$MIN_PHP_VERSION '$1 >= min')
-          echo "versions=$(echo $PHP_VERSIONS | jq -cR '[split(" ")[] | select(length > 0)]')" >> $GITHUB_OUTPUT
+          echo "Filtered PHP versions: $PHP_VERSIONS"
+          echo "versions=$(echo $PHP_VERSIONS | jq -cR '[split(\" \")[] | select(length > 0)]')" >> $GITHUB_OUTPUT
 
       - name: Fetch available WP versions
         id: set-wp-versions
         run: |
           MIN_WP_VERSION=${{ env.WP_VERSION }}
+          echo "Minimum WordPress version required: $MIN_WP_VERSION"
           WP_VERSIONS=$(curl -s https://api.wordpress.org/core/version-check/1.7/ | jq -r '.offers[].version' | sort -V | awk -v min=$MIN_WP_VERSION '$1 >= min')
-          echo "versions=$(echo $WP_VERSIONS | jq -cR '[split(" ")[] | select(length > 0)]')" >> $GITHUB_OUTPUT
+          echo "Filtered WordPress versions: $WP_VERSIONS"
+          echo "versions=$(echo $WP_VERSIONS | jq -cR '[split(\" \")[] | select(length > 0)]')" >> $GITHUB_OUTPUT
+
+      - name: Debug fetched versions
+        run: |
+          echo "PHP Versions: ${{ steps.set-php-versions.outputs.versions }}"
+          echo "WP Versions: ${{ steps.set-wp-versions.outputs.versions }}"
 
   run-tests:
     needs: fetch-versions
