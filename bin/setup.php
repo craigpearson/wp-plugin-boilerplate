@@ -229,7 +229,6 @@ class PluginSetup {
 		}
 	}
 
-
 	/**
 	 * Regenerate the Composer autoload files.
 	 *
